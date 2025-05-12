@@ -1,0 +1,112 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+  }
+  
+  .current-data {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .data-card {
+    flex: 1;
+    min-width: 200px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .data-card h3 {
+    margin-top: 0;
+    color: #495057;
+    font-size: 1.1rem;
+  }
+  
+  .data-card p {
+    font-size: 2rem;
+    margin: 10px 0;
+    font-weight: bold;
+    color: #2c3e50;
+    display: inline-block;
+  }
+  
+  .data-card span {
+    font-size: 1.2rem;
+    color: #6c757d;
+  }
+  
+  .chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .chart-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .chart-wrapper h2 {
+    margin-top: 0;
+    color: #495057;
+    text-align: center;
+  }
+  
+  canvas {
+    width: 100% !important;
+    height: 300px !important;
+  }
+  
+  #refreshBtn {
+    display: block;
+    width: 200px;
+    margin: 20px auto;
+    padding: 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  #refreshBtn:hover {
+    background-color: #2980b9;
+  }
+  
+  @media (max-width: 768px) {
+    .current-data {
+      flex-direction: column;
+    }
+    
+    .data-card {
+      min-width: 100%;
+    }
+  }

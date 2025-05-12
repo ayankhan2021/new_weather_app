@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Monitoring System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Weather Monitoring Dashboard</h1>
+    
+    <div class="current-data">
+      <div class="data-card">
+        <h3>Temperature</h3>
+        <p id="temperature">--</p>
+        <span>°C</span>
+      </div>
+      <div class="data-card">
+        <h3>Humidity</h3>
+        <p id="humidity">--</p>
+        <span>%</span>
+      </div>
+      <div class="data-card">
+        <h3>Air Quality</h3>
+        <p id="airQuality">--</p>
+        <span>PPM</span>
+      </div>
+      <div class="data-card">
+        <h3>Last Update</h3>
+        <p id="timestamp">--</p>
+      </div>
+    </div>
+    
+    <div class="chart-container">
+      <div class="chart-wrapper">
+        <h2>Temperature History</h2>
+        <canvas id="tempChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <h2>Humidity History</h2>
+        <canvas id="humidityChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <h2>Air Quality History</h2>
+        <canvas id="airQualityChart"></canvas>
+      </div>
+    </div>
+    
+    <button id="refreshBtn">Refresh Data</button>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

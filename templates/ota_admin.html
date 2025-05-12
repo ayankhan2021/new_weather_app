@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 OTA Management</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.warning {
+            background-color: #f44336;
+        }
+        button.warning:hover {
+            background-color: #d32f2f;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ESP32 OTA Management</h1>
+        
+        <div class="card">
+            <h2>Upload New Firmware</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="version">Firmware Version:</label>
+                    <input type="text" id="version" name="version" placeholder="e.g., 1.0.1" required>
+                </div>
+                <div class="form-group">
+                    <label for="firmware">Firmware Binary (.bin):</label>
+                    <input type="file" id="firmware" name="firmware" accept=".bin" required>
+                </div>
+                <button type="submit">Upload Firmware</button>
+            </form>
+            <div id="uploadStatus" class="status"></div>
+        </div>
+
+        <div class="card">
+            <h2>Connected Devices</h2>
+            <button id="refreshDevices">Refresh Devices</button>
+            <div class="table-container">
+                <table id="deviceTable">
+                    <thead>
+                        <tr>
+                            <th>Device ID</th>
+                            <th>IP Address</th>
+                            <th>Firmware Version</th>
+                            <th>Last Seen</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deviceTableBody">
+                        <!-- Devices will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get device list initially
+            fetchDevices();
+            
+            // Setup form submission
+            document.getElementById('uploadForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                uploadFirmware();
+            });
+            
+            // Setup refresh button
+            document.getElementById('refreshDevices').addEventListener('click', fetchDevices);
+        });
+        
+        function uploadFirmware() {
+            const formData = new FormData();
+            const versionInput = document.getElementById('version');
+            const firmwareInput = document.getElementById('firmware');
+            const statusDiv = document.getElementById('uploadStatus');
+            
+            formData.append('version', versionInput.value);
+            formData.append('firmware', firmwareInput.files[0]);
+            
+            statusDiv.innerHTML = 'Uploading firmware...';
+            statusDiv.className = 'status';
+            
+            fetch('/upload-firmware', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    statusDiv.innerHTML = 'Error: ' + data.error;
+                    statusDiv.className = 'status error';
+                } else {
+                    statusDiv.innerHTML = `Firmware uploaded successfully! Version: ${data.version}, MD5: ${data.md5}`;
+                    statusDiv.className = 'status success';
+                    // Reset form
+                    versionInput.value = '';
+                    firmwareInput.value = '';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = 'Error: ' + error.message;
+                statusDiv.className = 'status error';
+            });
+        }
+        
+        function fetchDevices() {
+            fetch('/devices')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('deviceTableBody');
+                    tableBody.innerHTML = '';
+                    
+                    if (data.devices && data.devices.length > 0) {
+                        data.devices.forEach(device => {
+                            const row = document.createElement('tr');
+                            
+                            row.innerHTML = `
+                                <td>${device.device_id}</td>
+                                <td>${device.ip_address}</td>
+                                <td>${device.firmware_version || 'Unknown'}</td>
+                                <td>${device.last_seen || 'Unknown'}</td>
+                                <td>
+                                    <button onclick="forceUpdate('${device.device_id}')">Force Update</button>
+                                </td>
+                            `;
+                            
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="5">No devices found</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching devices:', error);
+                    document.getElementById('deviceTableBody').innerHTML = 
+                        '<tr><td colspan="5">Error fetching devices</td></tr>';
+                });
+        }
+        
+        function forceUpdate(deviceId) {
+            fetch('/force-update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ device_id: deviceId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('Update request sent to device: ' + deviceId);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
